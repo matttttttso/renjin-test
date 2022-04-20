@@ -4,6 +4,7 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
 import org.renjin.script.RenjinScriptEngineFactory;
+import org.renjin.sexp.SEXP;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -35,6 +36,23 @@ public class RenjinTestApplication {
 			engine.eval("dim(y) <- c(2,2,2)");
 			engine.eval("print(class(y))");
 			engine.eval("print(y)");
+			
+			// evaluate Renjin code from String:
+			SEXP res = (SEXP)engine.eval("a <- 2; b <- 3; a*b");
+
+			// print the result to stdout:
+			System.out.println("The result of a*b is: " + res);
+			// determine the Java class of the result:
+			Class objectType = res.getClass();
+			System.out.println("Java class of 'res' is: " + objectType.getName());
+			// use the getTypeName() method of the SEXP object to get R's type name:
+			System.out.println("In R, typeof(res) would give '" + res.getTypeName() + "'");
+			/* OUTPUT CONTENT↓
+			 * The result of a*b is: 6.0
+			 * Java class of 'res' is: org.renjin.sexp.DoubleArrayVector
+			 * In R, typeof(res) would give 'double'
+			 */
+			
 		} catch (ScriptException e) {
 			// TODO 自動生成された catch ブロック
 			e.printStackTrace();
