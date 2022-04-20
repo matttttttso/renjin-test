@@ -1,5 +1,7 @@
 package com.example.demo;
 
+import java.util.HashMap;
+
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
@@ -8,6 +10,7 @@ import org.renjin.parser.ParseException;
 import org.renjin.primitives.matrix.Matrix;
 import org.renjin.script.RenjinScriptEngineFactory;
 import org.renjin.sexp.AttributeMap;
+import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.SEXP;
@@ -26,7 +29,7 @@ public class RenjinTestApplication {
 		ScriptEngine engine = factory.getScriptEngine();
 		// ... put your Java code here ...
 		try {
-			method11(engine);
+			method12(engine);
 		} catch (ScriptException e) {
 			e.printStackTrace();
 		}
@@ -145,5 +148,15 @@ public class RenjinTestApplication {
 		    String msg = condition.getElementAsString(0);
 		    System.out.println("The R script threw an error: " + msg);
 		}
+	}
+	private static void method12(ScriptEngine engine) throws ScriptException {
+		engine.put("x", 4);
+		engine.put("y", new double[] { 1d, 2d, 3d, 4d });
+		engine.put("z", new DoubleArrayVector(1,2,3,4,5));
+		engine.put("hashMap", new HashMap());
+		// some R magic to print all objects and their class with a for-loop:
+		engine.eval("for (obj in ls()) { " +
+		    "cmd <- parse(text = paste('typeof(', obj, ')', sep = ''));" +
+		    "cat('type of ', obj, ' is ', eval(cmd), '\\n', sep = '') }");
 	}
 }
