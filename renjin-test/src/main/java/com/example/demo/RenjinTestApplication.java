@@ -1,5 +1,7 @@
 package com.example.demo;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 
 import javax.script.ScriptEngine;
@@ -15,12 +17,17 @@ import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.Vector;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.util.ResourceUtils;
 
 @SpringBootApplication
 public class RenjinTestApplication {
-
+	
 	public static void main(String[] args) {
 		SpringApplication.run(RenjinTestApplication.class, args);
 		// create a script engine manager:
@@ -29,8 +36,8 @@ public class RenjinTestApplication {
 		ScriptEngine engine = factory.getScriptEngine();
 		// ... put your Java code here ...
 		try {
-			method12(engine);
-		} catch (ScriptException e) {
+			method13(engine);
+		} catch (ScriptException | IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -158,5 +165,8 @@ public class RenjinTestApplication {
 		engine.eval("for (obj in ls()) { " +
 		    "cmd <- parse(text = paste('typeof(', obj, ')', sep = ''));" +
 		    "cat('type of ', obj, ' is ', eval(cmd), '\\n', sep = '') }");
+	}
+	private static void method13(ScriptEngine engine) throws ScriptException, IOException {
+		engine.eval(new java.io.FileReader(ResourceUtils.getFile("classpath:rscript/import_example.R")));
 	}
 }
