@@ -24,6 +24,17 @@ public class RenjinTestApplication {
 			
 //			String stream = context.getResource("classpath:jasperreports/jasper-template.jasper").getURL().getFile();
 //			engine.eval(new FileReader("script.R"));
+			
+			engine.eval("x <- seq(9)");
+			engine.eval("print(class(x))");
+			engine.eval("dim(x) <- c(3, 3)");
+			engine.eval("print(class(x))");
+			engine.eval("print(x)");
+			
+			engine.eval("y <- seq(8)");
+			engine.eval("dim(y) <- c(2,2,2)");
+			engine.eval("print(class(y))");
+			engine.eval("print(y)");
 		} catch (ScriptException e) {
 			// TODO 自動生成された catch ブロック
 			e.printStackTrace();
