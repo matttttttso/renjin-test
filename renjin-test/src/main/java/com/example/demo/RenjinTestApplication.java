@@ -3,6 +3,8 @@ package com.example.demo;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
+import org.renjin.eval.EvalException;
+import org.renjin.parser.ParseException;
 import org.renjin.primitives.matrix.Matrix;
 import org.renjin.script.RenjinScriptEngineFactory;
 import org.renjin.sexp.AttributeMap;
@@ -24,10 +26,8 @@ public class RenjinTestApplication {
 		ScriptEngine engine = factory.getScriptEngine();
 		// ... put your Java code here ...
 		try {
-			method8(engine);
-			
+			method11(engine);
 		} catch (ScriptException e) {
-			// TODO 自動生成された catch ブロック
 			e.printStackTrace();
 		}
 	}
@@ -116,6 +116,34 @@ public class RenjinTestApplication {
 		        + m.getNumCols() + " matrix.");
 		} catch(IllegalArgumentException e) {
 		    System.out.println("Result is not a matrix: " + e);
+		}
+	}
+	private static void method9(ScriptEngine engine) throws ScriptException {
+		ListVector model = (ListVector)engine.eval("x <- 1:10; y <- x*3; lm(y ~ x)");
+		Vector coefficients = model.getElementAsVector("coefficients");
+		// same result, but less convenient:
+		// int i = model.indexOfName("coefficients");
+		// Vector coefficients = (Vector)model.getElementAsSEXP(i);
+
+		System.out.println("intercept = " + coefficients.getElementAsDouble(0));
+		System.out.println("slope = " + coefficients.getElementAsDouble(1));
+	}
+	private static void method10(ScriptEngine engine) throws ScriptException {
+		try {
+		    engine.eval("x <- 1 +/ 1");
+		} catch (ParseException e) {
+		    System.out.println("R script parse error: " + e.getMessage());
+		}
+	}
+	private static void method11(ScriptEngine engine) throws ScriptException {
+		try {
+		    engine.eval("stop(\"Hello world!\")");
+		} catch (EvalException e) {
+		    // getCondition() returns the condition as an R list:
+		    Vector condition = (Vector)e.getCondition();
+		    // the first element of the string contains the actual error message:
+		    String msg = condition.getElementAsString(0);
+		    System.out.println("The R script threw an error: " + msg);
 		}
 	}
 }
