@@ -36,7 +36,7 @@ public class RenjinTestApplication {
 		ScriptEngine engine = factory.getScriptEngine();
 		// ... put your Java code here ...
 		try {
-			method13(engine);
+			method14(engine);
 		} catch (ScriptException | IOException e) {
 			e.printStackTrace();
 		}
@@ -168,5 +168,8 @@ public class RenjinTestApplication {
 	}
 	private static void method13(ScriptEngine engine) throws ScriptException, IOException {
 		engine.eval(new java.io.FileReader(ResourceUtils.getFile("classpath:rscript/import_example.R")));
+	}
+	private static void method14(ScriptEngine engine) throws ScriptException, IOException {
+		engine.eval(new java.io.FileReader(ResourceUtils.getFile("classpath:rscript/bean_example.R")));
 	}
 }
