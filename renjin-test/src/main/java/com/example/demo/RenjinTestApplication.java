@@ -20,6 +20,7 @@ import org.renjin.script.RenjinScriptEngineFactory;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.DoubleVector;
+import org.renjin.sexp.IntArrayVector;
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.SEXP;
 import org.renjin.sexp.StringArrayVector;
@@ -185,8 +186,8 @@ public class RenjinTestApplication {
 	}
 	private static void method15(ScriptEngine engine) throws ScriptException, IOException {
 		StringArrayVector.Builder category = new StringArrayVector.Builder();
-		StringArrayVector.Builder months = new StringArrayVector.Builder(); 
-		StringArrayVector.Builder state = new StringArrayVector.Builder();
+		IntArrayVector.Builder months = new IntArrayVector.Builder(); 
+		IntArrayVector.Builder state = new IntArrayVector.Builder();
 		Path path = Paths.get(System.getProperty("user.home") + "\\Desktop\\data-for-renjin.csv");
 		List<CsvData> data = readCsv(path);
 		for(CsvData record : data) {
@@ -204,6 +205,22 @@ public class RenjinTestApplication {
 		
 		engine.put("df", myDf.build());
 		engine.eval("str(df)");
+		engine.eval("library(survival, pos=17)");
+		engine.eval("km <- NULL");
+		engine.eval("km.summary.table <- NULL");
+		engine.eval("km <- survfit(Surv((months/1),state==1)~category, data=df, na.action = na.omit, conf.type=\"log-log\")");
+		engine.eval("summary(km)");
+		engine.eval("res <- NULL");
+		engine.eval("res <- survdiff(Surv(months,state==1)~category, data=df, rho=0, na.action = na.omit)");
+		DoubleArrayVector res = (DoubleArrayVector)engine.eval("pchisq(res$chisq, length(res$n)-1, lower.tail = FALSE)");
+//		ListVector listVector = (ListVector)engine.eval("print(res)");
+//		SEXP res = (SEXP)engine.eval("print(res)");
+		System.out.println("The result of a*b is: " + res);
+		System.out.println("Java class of 'res' is: " + res.getClass().getName());
+		System.out.println("In R, typeof(res) would give '" + res.getTypeName() + "'");
+		
+//		engine.eval("km.summary.table <- summary.km(survfit=km, survdiff=res)");
+//		engine.eval("km.summary.table");
 	}
 	
 	public static List<CsvData> readCsv(Path path) throws IOException {

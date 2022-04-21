@@ -21,7 +21,7 @@ public class CsvData {
   @JsonProperty("category")
   private String category;
   @JsonProperty("months")
-  private String months;
+  private int months;
   @JsonProperty("state")
-  private String state;
+  private int state;
 }
