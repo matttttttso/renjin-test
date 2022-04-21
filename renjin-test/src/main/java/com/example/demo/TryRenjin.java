@@ -6,13 +6,8 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
 import org.renjin.script.RenjinScriptEngineFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 
 public class TryRenjin {
-	
-	@Autowired
-	private ApplicationContext context;
 	
 	public void test() throws IOException {
 		// create a script engine manager:

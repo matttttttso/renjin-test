@@ -1,10 +1,7 @@
 package com.example.demo;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -38,6 +35,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 
 @SpringBootApplication
+@SuppressWarnings("unused")
 public class RenjinTestApplication {
 	
 	public static void main(String[] args) {
@@ -172,7 +170,7 @@ public class RenjinTestApplication {
 		engine.put("x", 4);
 		engine.put("y", new double[] { 1d, 2d, 3d, 4d });
 		engine.put("z", new DoubleArrayVector(1,2,3,4,5));
-		engine.put("hashMap", new HashMap());
+		engine.put("hashMap", new HashMap<>());
 		// some R magic to print all objects and their class with a for-loop:
 		engine.eval("for (obj in ls()) { " +
 			"cmd <- parse(text = paste('typeof(', obj, ')', sep = ''));" +
@@ -208,7 +206,6 @@ public class RenjinTestApplication {
 		engine.eval("str(df)");
 	}
 	
-	
 	public static List<CsvData> readCsv(Path path) throws IOException {
 		CsvMapper csvMapper = new CsvMapper();
 
@@ -216,7 +213,6 @@ public class RenjinTestApplication {
 			.schemaFor(CsvData.class)
 			.withHeader();
 		List<CsvData> rtn = new ArrayList<>();
-
 
 		try (BufferedReader br = Files.newBufferedReader(path)) {
 			MappingIterator<CsvData> objectMappingIterator =
@@ -227,7 +223,6 @@ public class RenjinTestApplication {
 				rtn.add(objectMappingIterator.next());
 			}
 		}
-
 		return rtn;
 	}
 }
