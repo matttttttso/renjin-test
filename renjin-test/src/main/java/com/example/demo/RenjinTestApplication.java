@@ -1,8 +1,16 @@
 package com.example.demo;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
@@ -10,20 +18,24 @@ import javax.script.ScriptException;
 import org.renjin.eval.EvalException;
 import org.renjin.parser.ParseException;
 import org.renjin.primitives.matrix.Matrix;
+import org.renjin.primitives.vector.RowNamesVector;
 import org.renjin.script.RenjinScriptEngineFactory;
 import org.renjin.sexp.AttributeMap;
 import org.renjin.sexp.DoubleArrayVector;
 import org.renjin.sexp.DoubleVector;
 import org.renjin.sexp.ListVector;
 import org.renjin.sexp.SEXP;
+import org.renjin.sexp.StringArrayVector;
+import org.renjin.sexp.StringVector;
+import org.renjin.sexp.Symbols;
 import org.renjin.sexp.Vector;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.ResourceUtils;
+
+import com.fasterxml.jackson.databind.MappingIterator;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 
 @SpringBootApplication
 public class RenjinTestApplication {
@@ -36,7 +48,7 @@ public class RenjinTestApplication {
 		ScriptEngine engine = factory.getScriptEngine();
 		// ... put your Java code here ...
 		try {
-			method14(engine);
+			method15(engine);
 		} catch (ScriptException | IOException e) {
 			e.printStackTrace();
 		}
@@ -88,7 +100,7 @@ public class RenjinTestApplication {
 		Vector xVector = (Vector)engine.eval("x <- c(6, 7, 8, 9)");
 		System.out.println("The vector 'x' has length " + xVector.length());
 		for (int i = 0; i < xVector.length(); i++) {
-		    System.out.println("Element x[" + (i + 1) + "] is " + xVector.getElementAsDouble(i));
+			System.out.println("Element x[" + (i + 1) + "] is " + xVector.getElementAsDouble(i));
 		}
 	}
 	private static void method6(ScriptEngine engine) throws ScriptException {
@@ -100,32 +112,32 @@ public class RenjinTestApplication {
 	private static void method7(ScriptEngine engine) throws ScriptException {
 		Vector res = (Vector)engine.eval("matrix(seq(9), nrow = 3)");
 		if (res.hasAttributes()) {
-		    AttributeMap attributes = res.getAttributes();
-		    Vector dim = attributes.getDim();
-		    if (dim == null) {
-		        System.out.println("Result is a vector of length " +
-		            res.length());
+			AttributeMap attributes = res.getAttributes();
+			Vector dim = attributes.getDim();
+			if (dim == null) {
+				System.out.println("Result is a vector of length " +
+					res.length());
 
-		    } else {
-		        if (dim.length() == 2) {
-		            System.out.println("Result is a " +
-		                dim.getElementAsInt(0) + "x" +
-		                dim.getElementAsInt(1) + " matrix.");
-		        } else {
-		            System.out.println("Result is an array with " +
-		                dim.length() + " dimensions.");
-		        }
-		    }
+			} else {
+				if (dim.length() == 2) {
+					System.out.println("Result is a " +
+						dim.getElementAsInt(0) + "x" +
+						dim.getElementAsInt(1) + " matrix.");
+				} else {
+					System.out.println("Result is an array with " +
+						dim.length() + " dimensions.");
+				}
+			}
 		}
 	}
 	private static void method8(ScriptEngine engine) throws ScriptException {
 		Vector res = (Vector)engine.eval("matrix(seq(9), nrow = 3)");
 		try {
-		    Matrix m = new Matrix(res);
-		    System.out.println("Result is a " + m.getNumRows() + "x"
-		        + m.getNumCols() + " matrix.");
+			Matrix m = new Matrix(res);
+			System.out.println("Result is a " + m.getNumRows() + "x"
+				+ m.getNumCols() + " matrix.");
 		} catch(IllegalArgumentException e) {
-		    System.out.println("Result is not a matrix: " + e);
+			System.out.println("Result is not a matrix: " + e);
 		}
 	}
 	private static void method9(ScriptEngine engine) throws ScriptException {
@@ -140,20 +152,20 @@ public class RenjinTestApplication {
 	}
 	private static void method10(ScriptEngine engine) throws ScriptException {
 		try {
-		    engine.eval("x <- 1 +/ 1");
+			engine.eval("x <- 1 +/ 1");
 		} catch (ParseException e) {
-		    System.out.println("R script parse error: " + e.getMessage());
+			System.out.println("R script parse error: " + e.getMessage());
 		}
 	}
 	private static void method11(ScriptEngine engine) throws ScriptException {
 		try {
-		    engine.eval("stop(\"Hello world!\")");
+			engine.eval("stop(\"Hello world!\")");
 		} catch (EvalException e) {
-		    // getCondition() returns the condition as an R list:
-		    Vector condition = (Vector)e.getCondition();
-		    // the first element of the string contains the actual error message:
-		    String msg = condition.getElementAsString(0);
-		    System.out.println("The R script threw an error: " + msg);
+			// getCondition() returns the condition as an R list:
+			Vector condition = (Vector)e.getCondition();
+			// the first element of the string contains the actual error message:
+			String msg = condition.getElementAsString(0);
+			System.out.println("The R script threw an error: " + msg);
 		}
 	}
 	private static void method12(ScriptEngine engine) throws ScriptException {
@@ -163,13 +175,59 @@ public class RenjinTestApplication {
 		engine.put("hashMap", new HashMap());
 		// some R magic to print all objects and their class with a for-loop:
 		engine.eval("for (obj in ls()) { " +
-		    "cmd <- parse(text = paste('typeof(', obj, ')', sep = ''));" +
-		    "cat('type of ', obj, ' is ', eval(cmd), '\\n', sep = '') }");
+			"cmd <- parse(text = paste('typeof(', obj, ')', sep = ''));" +
+			"cat('type of ', obj, ' is ', eval(cmd), '\\n', sep = '') }");
 	}
 	private static void method13(ScriptEngine engine) throws ScriptException, IOException {
 		engine.eval(new java.io.FileReader(ResourceUtils.getFile("classpath:rscript/import_example.R")));
 	}
 	private static void method14(ScriptEngine engine) throws ScriptException, IOException {
 		engine.eval(new java.io.FileReader(ResourceUtils.getFile("classpath:rscript/bean_example.R")));
+		System.out.println(Paths.get(System.getProperty("user.home") + "\\Desktop\\data-for-renjin.csv").toString());
+	}
+	private static void method15(ScriptEngine engine) throws ScriptException, IOException {
+		StringArrayVector.Builder category = new StringArrayVector.Builder();
+		StringArrayVector.Builder months = new StringArrayVector.Builder(); 
+		StringArrayVector.Builder state = new StringArrayVector.Builder();
+		Path path = Paths.get(System.getProperty("user.home") + "\\Desktop\\data-for-renjin.csv");
+		List<CsvData> data = readCsv(path);
+		for(CsvData record : data) {
+			category.add(record.getCategory());
+			months.add(record.getMonths());
+			state.add(record.getState());
+		}
+
+		ListVector.NamedBuilder myDf = new ListVector.NamedBuilder();
+		myDf.setAttribute(Symbols.CLASS, StringVector.valueOf("data.frame"));
+		myDf.setAttribute(Symbols.ROW_NAMES, new RowNamesVector(data.size())); 
+		myDf.add("category", category.build());
+		myDf.add("months", months.build());
+		myDf.add("state", state.build());
+		
+		engine.put("df", myDf.build());
+		engine.eval("str(df)");
+	}
+	
+	
+	public static List<CsvData> readCsv(Path path) throws IOException {
+		CsvMapper csvMapper = new CsvMapper();
+
+		CsvSchema csvSchema = csvMapper
+			.schemaFor(CsvData.class)
+			.withHeader();
+		List<CsvData> rtn = new ArrayList<>();
+
+
+		try (BufferedReader br = Files.newBufferedReader(path)) {
+			MappingIterator<CsvData> objectMappingIterator =
+					csvMapper.readerFor(CsvData.class)
+					.with(csvSchema)
+					.readValues(br);
+			while (objectMappingIterator.hasNext()) {
+				rtn.add(objectMappingIterator.next());
+			}
+		}
+
+		return rtn;
 	}
 }
