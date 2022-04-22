@@ -212,12 +212,28 @@ public class RenjinTestApplication {
 		engine.eval("summary(km)");
 		engine.eval("res <- NULL");
 		engine.eval("res <- survdiff(Surv(months,state==1)~category, data=df, rho=0, na.action = na.omit)");
-		DoubleArrayVector res = (DoubleArrayVector)engine.eval("pchisq(res$chisq, length(res$n)-1, lower.tail = FALSE)");
-//		ListVector listVector = (ListVector)engine.eval("print(res)");
+		ListVector res = (ListVector)engine.eval("print(res, digit=10)");
 //		SEXP res = (SEXP)engine.eval("print(res)");
-		System.out.println("The result of a*b is: " + res);
-		System.out.println("Java class of 'res' is: " + res.getClass().getName());
-		System.out.println("In R, typeof(res) would give '" + res.getTypeName() + "'");
+		System.out.println("res: " + res);
+		System.out.println("res.getTypeName(): " + res.getTypeName());
+		System.out.println("res.getClass(): " + res.getClass());
+		System.out.println("res.getClass().getName(): " + res.getClass().getName());
+		double chisq = res.get("chisq").asReal();
+		DoubleArrayVector chisqRs = (DoubleArrayVector)engine.eval("res$chisq");
+		System.out.println("chisqRs: " + roundn(chisqRs.asReal(), 3));
+		System.out.println("chisqRs.getTypeName(): " + chisqRs.getTypeName());
+		System.out.println("chisqRs.getClass(): " + chisqRs.getClass());
+		System.out.println("chisqRs.getClass().getName(): " + chisqRs.getClass().getName());
+		DoubleArrayVector degree = (DoubleArrayVector)engine.eval("length(res$n)-1");
+		System.out.println("degree: " + (int)degree.asReal());
+		System.out.println("degree.getTypeName(): " + degree.getTypeName());
+		System.out.println("degree.getClass(): " + degree.getClass());
+		System.out.println("degree.getClass().getName(): " + degree.getClass().getName());
+		DoubleArrayVector pValue = (DoubleArrayVector)engine.eval("pchisq(res$chisq, length(res$n)-1, lower.tail = FALSE)");
+		System.out.println("pValue: " + pValue);
+		System.out.println("pValue.getTypeName(): " + pValue.getTypeName());
+		System.out.println("pValue.getClass(): " + pValue.getClass());
+		System.out.println("pValue.getClass().getName(): " + pValue.getClass().getName());
 		
 //		engine.eval("km.summary.table <- summary.km(survfit=km, survdiff=res)");
 //		engine.eval("km.summary.table");
@@ -241,5 +257,16 @@ public class RenjinTestApplication {
 			}
 		}
 		return rtn;
+	}
+	
+	/**
+	 * 小数第{@code digit}桁目を四捨五入するメソッド
+	 */
+	private static double roundn(double target, int digit) {
+		if (digit == 1) {
+			return Math.round(target);
+		}
+		double powerOf10 = Math.pow( 10.0, (double)( digit - 1 ) );
+		return (double) Math.round(target * powerOf10) / powerOf10;
 	}
 }
