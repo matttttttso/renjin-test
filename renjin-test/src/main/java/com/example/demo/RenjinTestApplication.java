@@ -186,7 +186,7 @@ public class RenjinTestApplication {
 	}
 	private static void method15(ScriptEngine engine) throws ScriptException, IOException {
 		StringArrayVector.Builder category = new StringArrayVector.Builder();
-		IntArrayVector.Builder months = new IntArrayVector.Builder(); 
+		IntArrayVector.Builder months = new IntArrayVector.Builder();
 		IntArrayVector.Builder state = new IntArrayVector.Builder();
 		Path path = Paths.get(System.getProperty("user.home") + "\\Desktop\\data-for-renjin.csv");
 		List<CsvData> data = readCsv(path);
